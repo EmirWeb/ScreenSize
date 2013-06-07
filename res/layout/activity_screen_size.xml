@@ -2,12 +2,33 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <TextView
-        android:gravity="center"
-        android:id="@+id/activity_screen_size_text_view"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/activity_screen_size_text_view_collecting_information"
-        android:textIsSelectable="true" />
+        android:orientation="vertical" >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/m400x400" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/scaled400x400" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/screen_size" />
+
+        <TextView
+            android:id="@+id/activity_screen_size_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/activity_screen_size_text_view_collecting_information"
+            android:textIsSelectable="true" />
+    </LinearLayout>
 
 </ScrollView>

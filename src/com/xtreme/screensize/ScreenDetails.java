@@ -2,7 +2,11 @@ package com.xtreme.screensize;
 
 import java.io.Serializable;
 
-public class ScreenDetails implements Serializable {
+import android.content.Context;
+
+import com.google.gson.JsonObject;
+
+public class ScreenDetails implements Serializable, Jsonizable {
 
 	private static final long serialVersionUID = -5807828181957312856L;
 
@@ -16,12 +20,8 @@ public class ScreenDetails implements Serializable {
 	public int mNavBarWidth;
 	public int mStatusBarHeight;
 	public int mTitleBarHeight;
-	public float mDensity;
-	public float mXdpi;
-	public float mYdpi;
 
-	@Override
-	public String toString() {
+	public String toString(final Context context) {
 		String details = "mDevicePixelHeight: " + mDevicePixelHeight + "\n";
 		details += "mDevicePixelWidth: " + mDevicePixelWidth + "\n";
 		details += "mWindowPixelHeight: " + mWindowPixelHeight + "\n";
@@ -32,9 +32,22 @@ public class ScreenDetails implements Serializable {
 		details += "mNavBarWidth: " + mNavBarWidth + "\n";
 		details += "mStatusBarHeight: " + mStatusBarHeight + "\n";
 		details += "mTitleBarHeight: " + mTitleBarHeight + "\n";
-		details += "mDensity: " + mDensity + "\n";
-		details += "mXdpi: " + mXdpi + "\n";
-		details += "mYdpi: " + mYdpi + "\n";
 		return details;
+	}
+
+	@Override
+	public JsonObject toJson() {
+		final JsonObject jsonObject = new JsonObject();
+		jsonObject.addProperty("devicePixelHeight", mDevicePixelHeight);
+		jsonObject.addProperty("devicePixelWidth", mDevicePixelWidth);
+		jsonObject.addProperty("windowPixelHeight", mWindowPixelHeight);
+		jsonObject.addProperty("windowPixelWidth", mWindowPixelWidth);
+		jsonObject.addProperty("contentViewPixelHeight", mContentViewPixelHeight);
+		jsonObject.addProperty("contentViewPixelWidth", mContentViewPixelWidth);
+		jsonObject.addProperty("navBarHeight", mNavBarHeight);
+		jsonObject.addProperty("navBarWidth", mNavBarWidth);
+		jsonObject.addProperty("statusBarHeight", mStatusBarHeight);
+		jsonObject.addProperty("titleBarHeight", mTitleBarHeight);
+		return jsonObject;
 	}
 }

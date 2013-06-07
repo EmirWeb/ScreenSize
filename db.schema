@@ -1,0 +1,55 @@
+DROP TABLE IF EXISTS deviceInformation;
+CREATE TABLE deviceInformation  ( 
+	deviceInformationId INTEGER NOT NULL AUTO_INCREMENT,
+	versionCodeName VARCHAR(256),
+	versionIncremental VARCHAR(256),
+	versionRelease VARCHAR(256),
+	versionSdkString VARCHAR(256),
+	versionSdkInteger VARCHAR(256),
+	board VARCHAR(256),
+	bootLoader VARCHAR(256),
+	brand VARCHAR(256),
+	cpuAbi VARCHAR(256),
+	cpuAbi2 VARCHAR(256),
+	device VARCHAR(256),
+	display VARCHAR(256),
+	fingerPrint VARCHAR(256),
+	hardwade VARCHAR(256),
+	host VARCHAR(256),
+	deviceId VARCHAR(256),
+	manufacturer VARCHAR(256),
+	product VARCHAR(256),
+	radio VARCHAR(256),
+	tags VARCHAR(256),
+	time BIGINT,
+	type VARCHAR(256),
+	unkown VARCHAR(256),
+	user VARCHAR(256),
+	densityName VARCHAR(256),
+	screenSize VARCHAR(256),
+	density FLOAT,
+	xdpi FLOAT,
+	ydpi FLOAT,
+	PRIMARY KEY (deviceInformationId) 
+);
+
+DROP TABLE IF EXISTS screenDetails;
+CREATE TABLE screenDetails  (
+	screenDetailsId INTEGER NOT NULL AUTO_INCREMENT,
+	deviceInformationId INT,
+	isPortrait TINYINT(1),
+	devicePixelHeight INT,
+	devicePixelWidth INT,
+	windowPixelHeight INT,
+	windowPixelWidth INT,
+	contentViewPixelHeight INT,
+	contentViewPixelWidth INT,
+	navBarHeight INT,
+	navBarWidth INT,
+	statusBarHeight INT,
+	titleBarHeight INT,
+	PRIMARY KEY (screenDetailsId) 
+);
+
+
+

@@ -2,5 +2,6 @@
 
     <string name="app_name">Screen Size</string>
     <string name="activity_screen_size_text_view_collecting_information">Collecting information</string>
+    <string name="screen_size">nothing</string>
 
 </resources>
