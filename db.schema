@@ -30,6 +30,7 @@ CREATE TABLE deviceInformation  (
 	density FLOAT,
 	xdpi FLOAT,
 	ydpi FLOAT,
+	count INT,
 	PRIMARY KEY (deviceInformationId) 
 );
 

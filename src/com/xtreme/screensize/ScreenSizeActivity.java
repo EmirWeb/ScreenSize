@@ -1,14 +1,29 @@
 package com.xtreme.screensize;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Display;
@@ -21,6 +36,8 @@ import android.widget.TextView;
 @SuppressLint("NewApi")
 public class ScreenSizeActivity extends Activity {
 
+	private static final String APPLICATION_JSON = "application/json";
+	private static final String TAG = "ScreenSize";
 	private static final String GET_RAW_HEIGHT = "getRawHeight";
 	private static final String GET_RAW_WIDTH = "getRawWidth";
 	private static final String ANDROID = "android";
@@ -81,6 +98,7 @@ public class ScreenSizeActivity extends Activity {
 		if (mScreenOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
 			final TextView textView = (TextView) findViewById(R.id.activity_screen_size_text_view);
 			textView.setText(mDeviceInformation.toString());
+			sendData();
 		} else {
 
 			final Handler handler = new Handler();
@@ -108,6 +126,69 @@ public class ScreenSizeActivity extends Activity {
 			}, TIME_BETWEEN_ATTEMPTS);
 		}
 
+	}
+
+	private void sendData() {
+		new AsyncTask<String, String, String>() {
+
+			@Override
+			protected String doInBackground(String... params) {
+				final HttpClient httpClient = new DefaultHttpClient();
+				final HttpPost httpPost = new HttpPost("http://192.168.90.166:8888/ScreenSize/UploadScreenSize.php");
+
+				try {
+
+					final StringEntity stringEntity = new StringEntity(mDeviceInformation.toJson().toString());
+					stringEntity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, APPLICATION_JSON));
+					httpPost.setEntity(stringEntity);
+					final HttpResponse httpResponse = httpClient.execute(httpPost);
+
+					if (httpResponse.getStatusLine().getStatusCode() == 200) {
+						final SharedPreferences sharedPreferences = getSharedPreferences("com.example.app", Context.MODE_PRIVATE);
+					}
+				} catch (ClientProtocolException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				return null;
+			}
+
+		}.execute("");
+	}
+
+	private String getStringResponse(final InputStream inputStream) {
+		if (inputStream == null)
+			return null;
+
+		final char[] chars = new char[1024];
+
+		InputStreamReader inputStreamReader = null;
+		final StringBuffer stringBuffer = new StringBuffer();
+		try {
+			inputStreamReader = new InputStreamReader(inputStream);
+			int charsRead = 0;
+			while (((charsRead = inputStreamReader.read(chars))) > 0)
+				stringBuffer.append(chars, 0, charsRead);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (inputStreamReader != null) {
+				try {
+					inputStreamReader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			try {
+				inputStream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return stringBuffer.toString();
 	}
 
 	@Override
@@ -165,7 +246,6 @@ public class ScreenSizeActivity extends Activity {
 			screenDetails.mTitleBarHeight = screenDetails.mWindowPixelHeight - screenDetails.mContentViewPixelHeight - screenDetails.mStatusBarHeight;
 		}
 	}
-
 
 	private void getWindowPixels(final ScreenDetails screenDetails, final Display display) {
 		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {

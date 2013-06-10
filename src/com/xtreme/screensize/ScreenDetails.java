@@ -21,7 +21,8 @@ public class ScreenDetails implements Serializable, Jsonizable {
 	public int mStatusBarHeight;
 	public int mTitleBarHeight;
 
-	public String toString(final Context context) {
+	@Override
+	public String toString() {
 		String details = "mDevicePixelHeight: " + mDevicePixelHeight + "\n";
 		details += "mDevicePixelWidth: " + mDevicePixelWidth + "\n";
 		details += "mWindowPixelHeight: " + mWindowPixelHeight + "\n";
