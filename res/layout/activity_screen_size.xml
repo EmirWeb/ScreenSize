@@ -1,34 +1,146 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent"
+    android:background="@drawable/activity_screen_size_background" >
 
-    <LinearLayout
+    <View
+        android:id="@+id/activity_screen_size_width_image_view"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:background="@drawable/width" />
+
+    <View
+        android:id="@+id/activity_screen_size_height_image_view"
+        android:layout_width="40dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/activity_screen_size_width_image_view"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/height" />
+
+    <TextView
+        android:id="@+id/activity_screen_size_width_text_view"
+        style="@style/Header3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/activity_screen_size_width_image_view"
+        android:layout_centerHorizontal="true"
+        android:textIsSelectable="false" />
+
+    <TextView
+        android:id="@+id/activity_screen_size_height_text_view"
+        style="@style/Header3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@id/activity_screen_size_height_image_view"
+        android:textIsSelectable="false" />
+
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical" >
+        android:layout_below="@id/activity_screen_size_width_text_view"
+        android:layout_margin="20dp"
+        android:layout_toRightOf="@id/activity_screen_size_height_text_view" >
 
-        <ImageView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/m400x400" />
+            android:layout_gravity="center_horizontal"
+            android:orientation="vertical" >
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/scaled400x400" />
+            <TextView
+                android:id="@+id/activity_screen_size_device_name_text_view"
+                style="@style/Header1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textIsSelectable="false" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/screen_size" />
+            <TextView
+                android:id="@+id/activity_screen_size_screen_size_text_view"
+                style="@style/Header2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textIsSelectable="false" />
 
-        <TextView
-            android:id="@+id/activity_screen_size_text_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/activity_screen_size_text_view_collecting_information"
-            android:textIsSelectable="true" />
-    </LinearLayout>
+            <TextView
+                android:id="@+id/activity_screen_size_screen_bucket_text_view"
+                style="@style/Header2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textIsSelectable="false" />
 
-</ScrollView>
+            <TextView
+                android:id="@+id/activity_screen_size_device_pixel_resolution_text_view"
+                style="@style/Header2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textIsSelectable="false" />
+
+            <TextView
+                android:id="@+id/activity_screen_size_device_dp_resolution_text_view"
+                style="@style/Header2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textIsSelectable="false" />
+
+            <TextView
+                android:id="@+id/activity_screen_size_navigation_bar_height_title_text_view"
+                style="@style/Header2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_screen_size_navigation_bar_height_title"
+                android:textIsSelectable="false"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/activity_screen_size_navigation_bar_width_title_text_view"
+                style="@style/Header2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_screen_size_navigation_bar_width_title"
+                android:textIsSelectable="false"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/activity_screen_size_navigation_bar_value_text_view"
+                style="@style/Header3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textIsSelectable="false" />
+
+            <TextView
+                android:id="@+id/activity_screen_size_title_bar_height_title_text_view"
+                style="@style/Header2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_screen_size_title_bar_height_title"
+                android:textIsSelectable="false" />
+
+            <TextView
+                android:id="@+id/activity_screen_size_title_bar_height_text_view"
+                style="@style/Header3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textIsSelectable="false" />
+
+            <TextView
+                android:id="@+id/activity_screen_size_status_bar_height_title_text_view"
+                style="@style/Header2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_screen_size_status_bar_height_title"
+                android:textIsSelectable="false" />
+
+            <TextView
+                android:id="@+id/activity_screen_size_status_bar_height_text_view"
+                style="@style/Header3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textIsSelectable="false" />
+        </LinearLayout>
+    </ScrollView>
+
+</RelativeLayout>

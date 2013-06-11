@@ -1,8 +1,6 @@
 package com.xtreme.screensize;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -20,6 +18,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -27,6 +26,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Display;
+import android.view.Surface;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -36,20 +36,23 @@ import android.widget.TextView;
 @SuppressLint("NewApi")
 public class ScreenSizeActivity extends Activity {
 
+	private static final String DP = "dp";
+	private static final String PX = "px";
+	private static final String UPLOAD_URL = "http://192.168.90.166:8888/ScreenSize/UploadScreenSize.php";
+	private static final String SCREEN_SIZE = "ScreenSize";
+	private static final String SUBMITTED = "Submitted";
 	private static final String APPLICATION_JSON = "application/json";
-	private static final String TAG = "ScreenSize";
 	private static final String GET_RAW_HEIGHT = "getRawHeight";
 	private static final String GET_RAW_WIDTH = "getRawWidth";
-	private static final String ANDROID = "android";
-	private static final String DIMEN = "dimen";
-	private static final String STATUS_BAR_HEIGHT = "status_bar_height";
-	private static final int TIME_BETWEEN_ATTEMPTS = 1000;
+	private static final int TIME_BETWEEN_ATTEMPTS = 1500;
 
 	private boolean mIsDestroyed;
 	private boolean mHideTitle;
 	private boolean mFullScreen;
 	private DeviceInformation mDeviceInformation;
 	private int mScreenOrientation;
+	private boolean mCalculationAttempted;
+	private boolean mCalculationsComplete;
 
 	private static class Extras {
 		public static final String HIDE_TITLE_KEY = "hideTitle";
@@ -93,48 +96,142 @@ public class ScreenSizeActivity extends Activity {
 		if (mFullScreen)
 			this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-		setContentView(R.layout.activity_screen_size);
+		getWindow().setBackgroundDrawable(null);
 
-		if (mScreenOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
-			final TextView textView = (TextView) findViewById(R.id.activity_screen_size_text_view);
-			textView.setText(mDeviceInformation.toString());
-			sendData();
-		} else {
-
-			final Handler handler = new Handler();
-			handler.postDelayed(new Runnable() {
-
-				@Override
-				public void run() {
-					if (mIsDestroyed)
-						return;
-					if (mDeviceInformation == null)
-						mDeviceInformation = new DeviceInformation(getApplicationContext());
-
-					getDeviceInformation();
-
-					if (isPass3() && mScreenOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
-						start(ScreenSizeActivity.this, false, false, ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, mDeviceInformation);
-					else if (isPass1())
-						start(ScreenSizeActivity.this, !mHideTitle, mFullScreen, mScreenOrientation, mDeviceInformation);
-					else if (isPass2())
-						start(ScreenSizeActivity.this, mHideTitle, !mFullScreen, mScreenOrientation, mDeviceInformation);
-					else if (isPass3())
-						start(ScreenSizeActivity.this, true, true, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE, mDeviceInformation);
-
-				}
-			}, TIME_BETWEEN_ATTEMPTS);
-		}
+		mCalculationsComplete = mScreenOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
+		if (mCalculationsComplete)
+			handleCompletedData();
+		else
+			setContentView(R.layout.activity_screen_size_calculating);
 
 	}
 
+	@Override
+	protected void onStart() {
+		super.onStart();
+		if (!mCalculationsComplete)
+			handleCalculations();
+	}
+
+	private void handleCalculations() {
+		if (mCalculationAttempted)
+			return;
+		mCalculationAttempted = true;
+		final Handler handler = new Handler();
+		handler.postDelayed(new Runnable() {
+
+			@Override
+			public void run() {
+				if (mIsDestroyed)
+					return;
+				if (mDeviceInformation == null)
+					mDeviceInformation = new DeviceInformation(getApplicationContext());
+
+				getDeviceInformation();
+
+				if (isPass3() && mScreenOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+					start(ScreenSizeActivity.this, false, false, ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, mDeviceInformation);
+				else if (isPass1())
+					start(ScreenSizeActivity.this, !mHideTitle, mFullScreen, mScreenOrientation, mDeviceInformation);
+				else if (isPass2())
+					start(ScreenSizeActivity.this, mHideTitle, !mFullScreen, mScreenOrientation, mDeviceInformation);
+				else if (isPass3())
+					start(ScreenSizeActivity.this, true, true, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE, mDeviceInformation);
+
+			}
+		}, TIME_BETWEEN_ATTEMPTS);
+	}
+
+	private void handleCompletedData() {
+		setContentView(R.layout.activity_screen_size);
+		final TextView deviceNameTextView = (TextView) findViewById(R.id.activity_screen_size_device_name_text_view);
+		final TextView deviceDpResolutionTextView = (TextView) findViewById(R.id.activity_screen_size_device_dp_resolution_text_view);
+		final TextView devicePixelResolutionTextView = (TextView) findViewById(R.id.activity_screen_size_device_pixel_resolution_text_view);
+		final TextView screenBucketTextView = (TextView) findViewById(R.id.activity_screen_size_screen_bucket_text_view);
+		final TextView screenSizeTextView = (TextView) findViewById(R.id.activity_screen_size_screen_size_text_view);
+		final TextView widthTextView = (TextView) findViewById(R.id.activity_screen_size_width_text_view);
+		final TextView heightTextView = (TextView) findViewById(R.id.activity_screen_size_height_text_view);
+		final TextView navigationBarHeightTextView = (TextView) findViewById(R.id.activity_screen_size_navigation_bar_height_title_text_view);
+		final TextView navigationBarWidthTextView = (TextView) findViewById(R.id.activity_screen_size_navigation_bar_width_title_text_view);
+		final TextView navigationBarValueTextView = (TextView) findViewById(R.id.activity_screen_size_navigation_bar_value_text_view);
+		final TextView titleBarWidthTextView = (TextView) findViewById(R.id.activity_screen_size_title_bar_height_text_view);
+		final TextView statusBarWidthTextView = (TextView) findViewById(R.id.activity_screen_size_status_bar_height_text_view);
+
+		deviceNameTextView.setText(DeviceInformation.sDeviceName);
+		screenSizeTextView.setText(mDeviceInformation.mScreenSize);
+		screenBucketTextView.setText(mDeviceInformation.mDensityName);
+
+		ScreenDetails screenDetails = null;
+		final float density = mDeviceInformation.mDensity;
+		if (isPortrait())
+			screenDetails = mDeviceInformation.mPortraitScreenDetails;
+		else if (isLandscape())
+			screenDetails = mDeviceInformation.mLandscapeScreenDetails;
+
+		final String deviceDpResolution = getDpResolutionString(screenDetails.mDevicePixelHeight, screenDetails.mDevicePixelWidth, density);
+		final String devicePixelResolution = getPixelString(screenDetails.mDevicePixelHeight, screenDetails.mDevicePixelWidth);
+
+		deviceDpResolutionTextView.setText(deviceDpResolution);
+		devicePixelResolutionTextView.setText(devicePixelResolution);
+
+		widthTextView.setText(getMeasurement(screenDetails.mContentViewPixelWidth, density, false));
+		heightTextView.setText(getMeasurement(screenDetails.mContentViewPixelHeight, density, true));
+
+		if (screenDetails.mNavBarHeight != 0) {
+			navigationBarHeightTextView.setVisibility(View.VISIBLE);
+			navigationBarValueTextView.setText(getMeasurement(screenDetails.mNavBarHeight, density, false));
+		} else if (screenDetails.mNavBarWidth != 0) {
+			navigationBarWidthTextView.setVisibility(View.VISIBLE);
+			navigationBarValueTextView.setText(getMeasurement(screenDetails.mNavBarWidth, density, false));
+		} else
+			navigationBarValueTextView.setText("Navigation bar not present");
+
+		if (screenDetails.mTitleBarHeight != 0)
+			titleBarWidthTextView.setText(getMeasurement(screenDetails.mTitleBarHeight, density, false));
+		else
+			titleBarWidthTextView.setText("Title bar not present");
+
+		if (screenDetails.mStatusBarHeight != 0)
+			statusBarWidthTextView.setText(getMeasurement(screenDetails.mStatusBarHeight, density, false));
+		else
+			statusBarWidthTextView.setText("Title bar not present");
+
+		sendData();
+	}
+
+	private String getMeasurement(final int pixel, final float density, final boolean hasLineBreak) {
+		String lineBreak = " ";
+		if (hasLineBreak)
+			lineBreak = "\n";
+		return getPixelMeasurement(pixel) + lineBreak + getDpMeasurement(pixel, density);
+	}
+
+	private String getPixelMeasurement(final int pixel) {
+		return Integer.toString(pixel) + PX;
+	}
+
+	private String getDpMeasurement(final int pixel, final float density) {
+		return "(" + Integer.toString((int) (pixel / density)) + DP + ")";
+	}
+
+	private String getPixelString(final int devicePixelHeight, final int devicePixelWidth) {
+		return devicePixelHeight + " x " + devicePixelWidth + PX;
+	}
+
+	private String getDpResolutionString(final int devicepixelHeight, final int devicePixelWidth, final float density) {
+		return "(" + (int) (devicepixelHeight / density) + " x " + (int) (devicePixelWidth / density) + DP + ")";
+	}
+
 	private void sendData() {
+		final boolean hasPreviouslySubmitted = hasPreviouslySubmitted();
+		if (hasPreviouslySubmitted)
+			return;
 		new AsyncTask<String, String, String>() {
 
 			@Override
 			protected String doInBackground(String... params) {
 				final HttpClient httpClient = new DefaultHttpClient();
-				final HttpPost httpPost = new HttpPost("http://192.168.90.166:8888/ScreenSize/UploadScreenSize.php");
+				final HttpPost httpPost = new HttpPost(UPLOAD_URL);
 
 				try {
 
@@ -143,9 +240,8 @@ public class ScreenSizeActivity extends Activity {
 					httpPost.setEntity(stringEntity);
 					final HttpResponse httpResponse = httpClient.execute(httpPost);
 
-					if (httpResponse.getStatusLine().getStatusCode() == 200) {
-						final SharedPreferences sharedPreferences = getSharedPreferences("com.example.app", Context.MODE_PRIVATE);
-					}
+					if (httpResponse.getStatusLine().getStatusCode() == 200)
+						setHasPreviouslySubmitted();
 				} catch (ClientProtocolException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -158,58 +254,23 @@ public class ScreenSizeActivity extends Activity {
 		}.execute("");
 	}
 
-	private String getStringResponse(final InputStream inputStream) {
-		if (inputStream == null)
-			return null;
+	private void setHasPreviouslySubmitted() {
+		final SharedPreferences sharedPreferences = getSharedPreferences(SCREEN_SIZE, Context.MODE_PRIVATE);
+		final Editor editor = sharedPreferences.edit();
+		editor.putBoolean(SUBMITTED, true);
+		editor.commit();
+	}
 
-		final char[] chars = new char[1024];
-
-		InputStreamReader inputStreamReader = null;
-		final StringBuffer stringBuffer = new StringBuffer();
-		try {
-			inputStreamReader = new InputStreamReader(inputStream);
-			int charsRead = 0;
-			while (((charsRead = inputStreamReader.read(chars))) > 0)
-				stringBuffer.append(chars, 0, charsRead);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (inputStreamReader != null) {
-				try {
-					inputStreamReader.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			try {
-				inputStream.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		return stringBuffer.toString();
+	private boolean hasPreviouslySubmitted() {
+		final SharedPreferences sharedPreferences = getSharedPreferences(SCREEN_SIZE, Context.MODE_PRIVATE);
+		final boolean submitted = sharedPreferences.getBoolean(SUBMITTED, false);
+		return submitted;
 	}
 
 	@Override
 	protected void onDestroy() {
 		mIsDestroyed = true;
 		super.onDestroy();
-	}
-
-	public void getStatusBarHeight(final ScreenDetails screenDetails) {
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB && android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.HONEYCOMB_MR2) {
-			screenDetails.mStatusBarHeight = 0;
-			return;
-		}
-
-		final int resourceId = getResources().getIdentifier(STATUS_BAR_HEIGHT, DIMEN, ANDROID);
-
-		int statusBarHeight = 0;
-		if (resourceId > 0)
-			statusBarHeight = getResources().getDimensionPixelSize(resourceId);
-
-		screenDetails.mStatusBarHeight = statusBarHeight;
 	}
 
 	private boolean isPass1() {
@@ -240,10 +301,10 @@ public class ScreenSizeActivity extends Activity {
 			getNavigationBarHeight(screenDetails, display);
 		} else if (isPass2()) {
 			getConentViewPixels(screenDetails, display);
-			screenDetails.mStatusBarHeight = screenDetails.mWindowPixelHeight - screenDetails.mContentViewPixelHeight;
+			screenDetails.mTitleBarHeight = screenDetails.mWindowPixelHeight - screenDetails.mContentViewPixelHeight;
 		} else if (isPass3()) {
 			getConentViewPixels(screenDetails, display);
-			screenDetails.mTitleBarHeight = screenDetails.mWindowPixelHeight - screenDetails.mContentViewPixelHeight - screenDetails.mStatusBarHeight;
+			screenDetails.mStatusBarHeight = screenDetails.mWindowPixelHeight - screenDetails.mContentViewPixelHeight - screenDetails.mTitleBarHeight;
 		}
 	}
 
@@ -275,7 +336,6 @@ public class ScreenSizeActivity extends Activity {
 	}
 
 	private void getConentViewPixels(final ScreenDetails screenDetails, final Display display) {
-
 		final Window window = getWindow();
 		if (window == null)
 			return;
@@ -327,4 +387,15 @@ public class ScreenSizeActivity extends Activity {
 		screenDetails.mNavBarWidth = screenDetails.mDevicePixelWidth - screenDetails.mWindowPixelWidth;
 	}
 
+	private boolean isPortrait() {
+		final Display display = getWindowManager().getDefaultDisplay();
+		final int rotation = display.getRotation();
+		return rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180;
+	}
+
+	private boolean isLandscape() {
+		final Display display = getWindowManager().getDefaultDisplay();
+		final int rotation = display.getRotation();
+		return rotation == Surface.ROTATION_270 || rotation == Surface.ROTATION_90;
+	}
 }

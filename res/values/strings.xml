@@ -1,7 +1,11 @@
 <resources>
 
     <string name="app_name">Screen Size</string>
-    <string name="activity_screen_size_text_view_collecting_information">Collecting information</string>
+    <string name="activity_screen_size_text_view_collecting_information">Collecting information&#8230;</string>
+    <string name="activity_screen_size_navigation_bar_height_title">Navigation bar height: </string>
+    <string name="activity_screen_size_navigation_bar_width_title">Navigation bar width: </string>
+    <string name="activity_screen_size_title_bar_height_title">Title bar height: </string>
+    <string name="activity_screen_size_status_bar_height_title">Status bar height: </string>
     <string name="screen_size">nothing</string>
 
 </resources>

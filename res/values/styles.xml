@@ -4,4 +4,19 @@
 
     <style name="AppTheme" parent="AppBaseTheme"></style>
 
+    <style name="Header1">
+        <item name="android:textSize">25sp</item>
+        <item name="android:textColor">@color/dark_orange</item>
+    </style>
+
+    <style name="Header2">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/dark_orange</item>
+    </style>
+
+    <style name="Header3">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/dark_orange</item>
+    </style>
+
 </resources>

@@ -2,8 +2,6 @@ package com.xtreme.screensize;
 
 import java.io.Serializable;
 
-import android.content.Context;
-
 import com.google.gson.JsonObject;
 
 public class ScreenDetails implements Serializable, Jsonizable {

@@ -1,0 +1,11 @@
+<resources>
+
+    <color name="light_grey">#F2F3F0</color>
+    <color name="grey">#A19D9A</color>
+    <color name="dark_grey">#333333</color>
+    <color name="darker_grey">#787878</color>
+    
+    <color name="light_orange">#FF3000</color>
+    <color name="orange">#FA4100</color>
+    <color name="dark_orange">#F34600</color>
+</resources>
