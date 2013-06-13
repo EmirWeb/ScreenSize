@@ -22,6 +22,7 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,7 +39,8 @@ public class ScreenSizeActivity extends Activity {
 
 	private static final String DP = "dp";
 	private static final String PX = "px";
-	private static final String UPLOAD_URL = "http://192.168.90.166:8888/ScreenSize/UploadScreenSize.php";
+	private static final String UPLOAD_URL = "http://192.168.90.166:8888/EmirWebNew/ScreenSize/UploadScreenSize.php";
+	private static final String LINK_URL = "http://192.168.90.166:8888/EmirWebNew/ScreenDeviceStatistics.php";
 	private static final String SCREEN_SIZE = "ScreenSize";
 	private static final String SUBMITTED = "Submitted";
 	private static final String APPLICATION_JSON = "application/json";
@@ -239,7 +241,6 @@ public class ScreenSizeActivity extends Activity {
 					stringEntity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, APPLICATION_JSON));
 					httpPost.setEntity(stringEntity);
 					final HttpResponse httpResponse = httpClient.execute(httpPost);
-
 					if (httpResponse.getStatusLine().getStatusCode() == 200)
 						setHasPreviouslySubmitted();
 				} catch (ClientProtocolException e) {
@@ -363,10 +364,10 @@ public class ScreenSizeActivity extends Activity {
 			screenDetails.mDevicePixelWidth = size.x;
 		} else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB_MR2) {
 			try {
-				Method mGetRawW = Display.class.getMethod(GET_RAW_WIDTH);
-				Method mGetRawH = Display.class.getMethod(GET_RAW_HEIGHT);
-				screenDetails.mDevicePixelHeight = (Integer) mGetRawH.invoke(display);
-				screenDetails.mDevicePixelWidth = (Integer) mGetRawW.invoke(display);
+				final Method getRawWidthMethod = Display.class.getMethod(GET_RAW_WIDTH);
+				final Method getRawHeightMethod = Display.class.getMethod(GET_RAW_HEIGHT);
+				screenDetails.mDevicePixelHeight = (Integer) getRawHeightMethod.invoke(display);
+				screenDetails.mDevicePixelWidth = (Integer) getRawWidthMethod.invoke(display);
 			} catch (NoSuchMethodException e) {
 				e.printStackTrace();
 			} catch (IllegalArgumentException e) {
@@ -398,4 +399,11 @@ public class ScreenSizeActivity extends Activity {
 		final int rotation = display.getRotation();
 		return rotation == Surface.ROTATION_270 || rotation == Surface.ROTATION_90;
 	}
+
+	public void onVisitUrlButtonClicked(final View view) {
+		final Uri uri = Uri.parse(LINK_URL);
+		final Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+		startActivity(intent);
+	}
+
 }

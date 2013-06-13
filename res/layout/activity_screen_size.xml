@@ -140,6 +140,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textIsSelectable="false" />
+
+            <Button
+                android:layout_margin="15dp"
+                android:background="@drawable/button"
+                android:padding="15sp"
+                android:textSize="15sp"
+                android:textColor="@color/light_grey"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onVisitUrlButtonClicked"
+                android:text="@string/activity_screen_size_link_to_web" />
         </LinearLayout>
     </ScrollView>
 

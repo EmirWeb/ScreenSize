@@ -14,27 +14,16 @@ import com.google.gson.JsonObject;
 public class DeviceInformation implements Serializable, Jsonizable {
 
 	private static final String UNKOWN_SCREEN = "Unkown screen";
-
 	private static final String UNDEFINED_SCREEN = "Undefined screen";
-
 	private static final String X_LARGE_SCREEN = "XLarge screen";
-
 	private static final String LARGE_SCREEN = "Large screen";
-
 	private static final String NORMAL_SCREEN = "Normal screen";
-
 	private static final String SMALL_SCREEN = "Small screen";
-
 	private static final String XXHDPI = "xxhdpi";
-
 	private static final String TVDPI = "tvdpi";
-
 	private static final String XHDPI = "xhdpi";
-
 	private static final String HDPI = "hdpi";
-
 	private static final String MDPI = "mdpi";
-
 	private static final String LDPI = "ldpi";
 
 	private static final long serialVersionUID = -1256137182982237492L;
@@ -186,6 +175,7 @@ public class DeviceInformation implements Serializable, Jsonizable {
 		JsonObject jsonObject = new JsonObject();
 		jsonObject.add("portraitScreenDetails", mPortraitScreenDetails.toJson());
 		jsonObject.add("landscapeScreenDetails", mLandscapeScreenDetails.toJson());
+		jsonObject.addProperty("deviceName", sDeviceName);
 		jsonObject.addProperty("versionCodeName", sVersionCodeName);
 		jsonObject.addProperty("versionIncremental", sVersionIncremental);
 		jsonObject.addProperty("versionRelease", sVersionRelease);
