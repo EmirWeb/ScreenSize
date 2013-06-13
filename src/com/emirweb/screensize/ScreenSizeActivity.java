@@ -1,6 +1,12 @@
-package com.xtreme.screensize;
+package com.emirweb.screensize;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OptionalDataException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -37,10 +43,12 @@ import android.widget.TextView;
 @SuppressLint("NewApi")
 public class ScreenSizeActivity extends Activity {
 
+	private static final String DEVICE_INFORMATION = "deviceInformation";
+	private static final String VERSION = "1";
 	private static final String DP = "dp";
 	private static final String PX = "px";
-	private static final String UPLOAD_URL = "http://192.168.90.166:8888/EmirWebNew/ScreenSize/UploadScreenSize.php";
-	private static final String LINK_URL = "http://192.168.90.166:8888/EmirWebNew/ScreenDeviceStatistics.php";
+	private static final String UPLOAD_URL = "http://emirweb.com/ScreenSize/UploadScreenSize.php";
+	private static final String LINK_URL = "http://emirweb.com/ScreenDeviceStatistics.php";
 	private static final String SCREEN_SIZE = "ScreenSize";
 	private static final String SUBMITTED = "Submitted";
 	private static final String APPLICATION_JSON = "application/json";
@@ -59,7 +67,7 @@ public class ScreenSizeActivity extends Activity {
 	private static class Extras {
 		public static final String HIDE_TITLE_KEY = "hideTitle";
 		public static final String FULL_SCREEN_KEY = "fullScreen";
-		public static final String DEVICE_INFORMATION_KEY = "deviceInformation";
+		public static final String DEVICE_INFORMATION_KEY = DEVICE_INFORMATION;
 		public static final String SCREEN_ORIENTATION_KEY = "screenOrientation";
 
 	}
@@ -87,7 +95,7 @@ public class ScreenSizeActivity extends Activity {
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		
 		parseIntent();
 
 		setRequestedOrientation(mScreenOrientation);
@@ -100,11 +108,58 @@ public class ScreenSizeActivity extends Activity {
 
 		getWindow().setBackgroundDrawable(null);
 
-		mCalculationsComplete = mScreenOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
+		boolean deviceInformationSaved = false;
+		if (isPass1() && mScreenOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+			final DeviceInformation deviceInformation = getSavedDeviceInformation();
+			deviceInformationSaved = deviceInformation != null;
+			if (deviceInformationSaved)
+				mDeviceInformation = deviceInformation;
+		}
+
+		if (deviceInformationSaved && !hasPreviouslySubmitted())
+			sendData(false);
+
+		mCalculationsComplete = deviceInformationSaved || mScreenOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 		if (mCalculationsComplete)
 			handleCompletedData();
 		else
 			setContentView(R.layout.activity_screen_size_calculating);
+
+	}
+
+	private DeviceInformation getSavedDeviceInformation() {
+		FileInputStream fileInputStream = null;
+		ObjectInputStream objectInputStream = null;
+		try {
+			fileInputStream = openFileInput(DEVICE_INFORMATION + VERSION);
+			objectInputStream = new ObjectInputStream(fileInputStream);
+			final DeviceInformation deviceInformation = (DeviceInformation) objectInputStream.readObject();
+			return deviceInformation;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (OptionalDataException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (objectInputStream != null) {
+				try {
+					objectInputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if (fileInputStream != null) {
+				try {
+					fileInputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return null;
 
 	}
 
@@ -198,7 +253,7 @@ public class ScreenSizeActivity extends Activity {
 		else
 			statusBarWidthTextView.setText("Title bar not present");
 
-		sendData();
+		sendData(true);
 	}
 
 	private String getMeasurement(final int pixel, final float density, final boolean hasLineBreak) {
@@ -224,7 +279,7 @@ public class ScreenSizeActivity extends Activity {
 		return "(" + (int) (devicepixelHeight / density) + " x " + (int) (devicePixelWidth / density) + DP + ")";
 	}
 
-	private void sendData() {
+	private void sendData(final boolean saveDeviceInformation) {
 		final boolean hasPreviouslySubmitted = hasPreviouslySubmitted();
 		if (hasPreviouslySubmitted)
 			return;
@@ -232,6 +287,7 @@ public class ScreenSizeActivity extends Activity {
 
 			@Override
 			protected String doInBackground(String... params) {
+				
 				final HttpClient httpClient = new DefaultHttpClient();
 				final HttpPost httpPost = new HttpPost(UPLOAD_URL);
 
@@ -241,8 +297,13 @@ public class ScreenSizeActivity extends Activity {
 					stringEntity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, APPLICATION_JSON));
 					httpPost.setEntity(stringEntity);
 					final HttpResponse httpResponse = httpClient.execute(httpPost);
+					
 					if (httpResponse.getStatusLine().getStatusCode() == 200)
 						setHasPreviouslySubmitted();
+					
+					if (saveDeviceInformation)
+						saveDeviceInformation(mDeviceInformation);
+
 				} catch (ClientProtocolException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -260,6 +321,35 @@ public class ScreenSizeActivity extends Activity {
 		final Editor editor = sharedPreferences.edit();
 		editor.putBoolean(SUBMITTED, true);
 		editor.commit();
+	}
+
+	private void saveDeviceInformation(final DeviceInformation deviceInformation) {
+		FileOutputStream fileOutputStream = null;
+		ObjectOutputStream objectOutputStream = null;
+		try {
+			fileOutputStream = openFileOutput(DEVICE_INFORMATION + VERSION, Context.MODE_PRIVATE);
+			objectOutputStream = new ObjectOutputStream(fileOutputStream);
+			objectOutputStream.writeObject(deviceInformation);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (objectOutputStream != null) {
+				try {
+					objectOutputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if (fileOutputStream != null) {
+				try {
+					fileOutputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	private boolean hasPreviouslySubmitted() {

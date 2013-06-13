@@ -1,4 +1,4 @@
-package com.xtreme.screensize;
+package com.emirweb.screensize;
 
 import java.io.Serializable;
 
